@@ -1,7 +1,11 @@
 var express = require("express");
 var bodyParser = require("body-parser");
+var methodOverride = require("method-override");
 
-var PORT = process.env.PORT || 8000;
+// Set Handlebars.
+var exphbs = require("express-handlebars");
+
+var PORT = process.env.PORT || 8080;
 
 var app = express();
 
@@ -14,10 +18,11 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // parse application/json
 app.use(bodyParser.json());
 
-// Set Handlebars.
-var exphbs = require("express-handlebars");
+app.use(methodOverride('_method'));
 
 app.engine("handlebars", exphbs({ defaultLayout: "main" }));
+
+// We set this as the view engine bc Handlebars is controlling what the users see
 app.set("view engine", "handlebars");
 
 // Import routes and give the server access to them.

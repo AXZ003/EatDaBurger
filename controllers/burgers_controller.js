@@ -1,65 +1,58 @@
 var express = require('express');
-var methodOverride = require('method-override');
-var bodyParser = require('body-parser');
-var orm = require('../config/orm.js');
-var app = express();
-var burgers = require('../models/burger.js')
-
-// var router = express.Router();
 
 
+// Import the model (burger.js) to use its database.
 
-module.exports = function(app) {
-	
-	app.get('/', function(req,res) {
-	  orm.selectAll('burgers', callback);
-	  function callback(data) {
-	    console.log(data)
-	    res.render('index', {sent: data,
-	      helpers: {
-	        Eaten: function(burger) {
-	        if (burger.devoured === 1) {
-	          return burger.id + ": " + burger.burger_name;
-	        }
-	        },
-	        notEaten: function(burger) {
-	          if (burger.devoured === 0) {
-	            return burger.id + ": " + burger.burger_name;
-	          }
-	        }
-	      }
-	    });
-	  }
-	})
-	app.post('/create', function(req,res) {
-	  console.log(req.body);
-	  var insertBurger = req.body.burger_name;
-	  orm.insertOne('burgers', insertBurger, false, callback);
-	  function callback(data) {
-	    console.log(data);
-	    res.redirect('/');
-	  }
-	})
+var burger = require('../models/burger.js');
+var router = express.Router();
 
-	app.put('/update', function(req,res) {
-	  console.log(req.body);
-	  var updateId = req.body.id;
+// NOT USED
 
-	  orm.updateOne('burgers', updateId, callback)
-	  function callback(data) {
-	    console.log(data)
-	    res.redirect('/')
-	  }
-	})
 
-	app.delete('/delete', function(req,res) {
-	  console.log(req.body);
-	  var deleteId = req.body.id;
+// Create all our routes and set up logic within those routes where required.
+router.get("/", function (req, res) {
 
-	  orm.deleteOne('burgers', deleteId, callback)
-	  function callback(data) {
-	    console.log(data)
-	    res.redirect('/')
-	  }
-	})
-}
+    res.render("index");
+  
+});
+
+// GET METHOD 
+router.get('/burgers', function (req, res) {
+	burger.all(function (data) {
+		var hbsObject = { burgers: data };
+		console.log(hbsObject);
+		res.render('index', hbsObject);
+	});
+});
+
+
+router.post("/burgers/create", function (req, res) {
+	console.log(req.body)
+  burger.create(["burger_name", "devoured"], [req.body.burger_name,0], function () { // data in parenthesis?
+      res.redirect('/burgers');
+    });
+});
+
+
+router.put("/burgers/update/:id", function (req, res) {
+  var condition = "id = " + req.params.id;
+  console.log('condition', condition)
+  burger.update({devoured: req.body.devoured}, condition, function () { // data in parenthesis?
+    res.redirect('/burgers');
+  });
+});
+
+
+router.delete("/burgers/delete", function (req, res) {
+  burger.delete(function (data) {
+    var hbsObject = {burgers: data};
+    console.log(hbsObject);
+    res.redirect('/burgers');
+  });
+});
+
+
+
+
+
+module.exports = router;
